@@ -8,11 +8,15 @@ import {
   PutObjectCommand,
   type PutObjectCommandInput,
 } from "@aws-sdk/client-s3";
-import { textractClient } from "../../aws/client";
-import { s3Client } from "../../aws/client"; // You'll need to export this
+import { textractClient } from "../../clients/aws/client";
+import { s3Client } from "../../clients/aws/client"; // You'll need to export this
 
-export const handleUpload = async (req: Request, res: Response) => {
+export const handleUploadAndDocExtraction = async (
+  req: Request,
+  res: Response
+) => {
   console.log("At 5 ");
+  console.log("Request File", req.file);
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -22,9 +26,8 @@ export const handleUpload = async (req: Request, res: Response) => {
     const fileBuffer = fs.readFileSync(filePath);
 
     const bucketName = process.env.S3_BUCKET_NAME;
-    const s3Key = `uploads/${Date.now()}-${req.file.originalname}`;
+    const s3Key = `uploads/${Date.now()}~${req.file.originalname}`;
 
- 
     const s3Params: PutObjectCommandInput = {
       Bucket: bucketName,
       Key: s3Key,
@@ -42,6 +45,10 @@ export const handleUpload = async (req: Request, res: Response) => {
           Bucket: bucketName,
           Name: s3Key,
         },
+      },
+      NotificationChannel: {
+        RoleArn: process.env.ROLE_ARN,
+        SNSTopicArn: process.env.SNS_TOPIC_ARN,
       },
     };
 
