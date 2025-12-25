@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { getDocText } from "../../utils/getDocText";
+import { BankStatementModel } from "../../models/bankstatement.model";
 
-export const handleDocDetection = async (req: Request, res: Response) => {
+const handleDocDetection = async (req: Request, res: Response) => {
   try {
     // Parse the body (could be JSON or text)
     let body = req.body;
@@ -30,21 +31,58 @@ export const handleDocDetection = async (req: Request, res: Response) => {
       console.log("Textract notification:", message);
 
       if (message.Status === "SUCCEEDED") {
-        // Process the results
-        // console.log("Job completed:", message.JobId);
+        res.status(200).send("Message received");
+
         const fileName = message.DocumentLocation.S3ObjectName.split("~").pop();
-        const result = await getDocText(message.JobId, fileName);
-        // console.log(result);
-        return res.status(200).json({
-          success: true,
-          data: result,
-        });
+
+        const data = await getDocText(message.JobId, fileName);
+        await BankStatementModel.findOneAndUpdate(
+          { jobId: message.JobId },
+          {
+            data,
+            status: "COMPLETED",
+          },
+          { new: true }
+        );
+      } else if (message.Status === "FAILED") {
+        await BankStatementModel.findOneAndUpdate(
+          { jobId: message.JobId },
+          { status: "FAILED" }
+        );
+        throw new Error("Error Extracting text from pdf");
       }
+      return;
     }
   } catch (error) {
+    // Update status to failed
     console.error("Webhook error:", error);
-    res.status(500).send("Error");
+    return res.status(500).send("Error");
   }
 
-  res.status(200).send("OK");
+  return res.status(200).send("OK");
 };
+
+const getByJobId = async (req: Request, res: Response) => {
+  try {
+    const { jobId } = req.params;
+    console.log("JobId", jobId);
+    if (!jobId) {
+      return res.status(400).json({ error: "Please send a jobId" });
+    }
+    const document = await BankStatementModel.findOne({ jobId });
+
+    if (!document) {
+      return res.status(404).json({ error: "Job not found" });
+    }
+
+    return res.json({
+      jobId: document.jobId,
+      status: document.status,
+      data: document.data,
+    });
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+export { handleDocDetection, getByJobId };

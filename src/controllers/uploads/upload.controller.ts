@@ -10,6 +10,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { textractClient } from "../../clients/aws/client";
 import { s3Client } from "../../clients/aws/client"; // You'll need to export this
+import { BankStatementModel } from "../../models/bankstatement.model";
 
 export const handleUploadAndDocExtraction = async (
   req: Request,
@@ -57,6 +58,16 @@ export const handleUploadAndDocExtraction = async (
     );
     const data = await textractClient.send(textractCommand);
     console.log("Textract job started:", data.JobId);
+    // / Create initial document
+    if (data.JobId) {
+      await BankStatementModel.create({
+        jobId: data.JobId,
+        data: [],
+        status: "PROCESSING",
+      });
+    } else {
+      throw new Error("Failed to get job Id");
+    }
 
     // Delete local file after uploading to S3
     fs.unlinkSync(filePath);

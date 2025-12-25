@@ -1,7 +1,8 @@
-import { Router } from "express"
-import { handleDocDetection } from "../../controllers/process/textdetect.controller"
+import { Router } from "express";
+import { getByJobId, handleDocDetection } from "../../controllers/process/textdetect.controller";
 
-const router = Router()
+const router = Router();
 
-router.post("/",handleDocDetection)
+router.post("/", handleDocDetection);
+router.get("/:jobId", getByJobId);
 export default router;

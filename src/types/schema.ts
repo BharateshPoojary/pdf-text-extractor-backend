@@ -19,3 +19,11 @@ export interface Transaction {
   creditAmount: number | null;
   runningBalance: number;
 }
+
+export interface BankStatementDocument extends Document {
+  jobId: string;
+  data: BankStatement[];
+  status: "PROCESSING" | "COMPLETED" | "FAILED";
+  createdAt: Date;
+  updatedAt: Date;
+}

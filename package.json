@@ -30,6 +30,7 @@
     "express": "^5.1.0",
     "fs": "^0.0.1-security",
     "joi": "^18.0.1",
+    "mongoose": "^9.0.2",
     "multer": "^2.0.2"
   },
   "devDependencies": {
