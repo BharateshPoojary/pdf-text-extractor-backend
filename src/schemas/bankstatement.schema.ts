@@ -61,7 +61,7 @@ export const BankStatementDocumentSchema = new Schema<BankStatementDocument>(
       type: String,
       required: true,
       unique: true,
-      index: true, // Index for faster queries
+ 
     },
     data: {
       type: [BankStatementSchema],
