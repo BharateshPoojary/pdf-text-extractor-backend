@@ -27,7 +27,7 @@ export const normalizeWithAI = async (
     const parsed = JSON.parse(cleanedResponse ?? "");
 
     // Validate structure
-    if (!Array.isArray(parsed)) {
+    if (!Array.isArray(parsed) || parsed.length === 0 ) {
       await BankStatementModel.findOneAndUpdate(
         { jobId },
         { status: "FAILED" }
