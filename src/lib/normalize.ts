@@ -28,12 +28,15 @@ export const normalizeWithAI = async (
 
     // Validate structure
     if (!Array.isArray(parsed)) {
+      await BankStatementModel.findOneAndUpdate(
+        { jobId },
+        { status: "FAILED" }
+      );
       throw new Error("AI response is not an array");
     }
     console.log("parsed", parsed);
     return parsed as BankStatement[];
   } catch (error) {
-    await BankStatementModel.findOneAndUpdate({ jobId }, { status: "FAILED" });
     console.error("AI normalization error:", error);
     throw new Error("Failed to normalize bank statement with AI");
   }
