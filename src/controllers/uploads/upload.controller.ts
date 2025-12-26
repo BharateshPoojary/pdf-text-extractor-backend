@@ -11,6 +11,7 @@ import {
 import { textractClient } from "../../clients/aws/client";
 import { s3Client } from "../../clients/aws/client"; // You'll need to export this
 import { BankStatementModel } from "../../models/bankstatement.model";
+import dbConnection from "../../utils/dbConnect";
 
 export const handleUploadAndDocExtraction = async (
   req: Request,
@@ -22,7 +23,8 @@ export const handleUploadAndDocExtraction = async (
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
-
+    await dbConnection();
+    console.log("Database connected");
     const filePath = req.file.path;
     const fileBuffer = fs.readFileSync(filePath);
 
@@ -60,6 +62,7 @@ export const handleUploadAndDocExtraction = async (
     console.log("Textract job started:", data.JobId);
     // / Create initial document
     if (data.JobId) {
+      console.log("Iam here at one ");
       await BankStatementModel.create({
         jobId: data.JobId,
         data: [],

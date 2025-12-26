@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
 import { getDocText } from "../../utils/getDocText";
 import { BankStatementModel } from "../../models/bankstatement.model";
+import dbConnection from "../../utils/dbConnect";
 
 const handleDocDetection = async (req: Request, res: Response) => {
   try {
+    await dbConnection();
+    console.log("Database connected");
     // Parse the body (could be JSON or text)
     let body = req.body;
     if (typeof body === "string") {
@@ -64,6 +67,8 @@ const handleDocDetection = async (req: Request, res: Response) => {
 
 const getByJobId = async (req: Request, res: Response) => {
   try {
+    await dbConnection();
+    console.log("Database connected");
     const { jobId } = req.params;
     console.log("JobId", jobId);
     if (!jobId) {
